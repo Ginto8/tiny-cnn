@@ -423,6 +423,19 @@ public:
         return *this;
     }
 
+    const vec_t& fprop(const vec_t& in, int idx = 0) {
+        if (in.size() != (size_t)in_dim())
+            data_mismatch(*layers_[0], in);
+        return layers_.head()->forward_propagation(in, idx);
+    }
+
+    float_t get_loss(const vec_t& out, const vec_t& t) {
+        float_t e = float_t(0);
+        assert(out.size() == t.size());
+        for(size_t i = 0; i < out.size(); i++){ e += E::f(out[i], t[i]); }
+        return e;
+    }
+
 protected:
     float_t fprop_max(const vec_t& in, int idx = 0) {
         const vec_t& prediction = fprop(in, idx);
@@ -521,19 +534,6 @@ private:
         if (typeid(h) == typeid(activation::identity) && typeid(E) == typeid(mse)) return true;
         if (typeid(h) == typeid(activation::softmax) && typeid(E) == typeid(cross_entropy_multiclass)) return true;
         return false;
-    }
-
-    const vec_t& fprop(const vec_t& in, int idx = 0) {
-        if (in.size() != (size_t)in_dim())
-            data_mismatch(*layers_[0], in);
-        return layers_.head()->forward_propagation(in, idx);
-    }
-
-    float_t get_loss(const vec_t& out, const vec_t& t) {
-        float_t e = float_t(0);
-        assert(out.size() == t.size());
-        for(size_t i = 0; i < out.size(); i++){ e += E::f(out[i], t[i]); }
-        return e;
     }
 
     void bprop_2nd(const vec_t& out, const vec_t* t_cost) {
